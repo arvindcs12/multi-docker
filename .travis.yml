@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t arvindcs12/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true arvindcs12/react-test npm test
+
+after_success:
+  - docker build -t arvindcs12/multi-client ./client
+  - docker build -t arvindcs12/multi-nginx ./nginx
+  - docker build -t arvindcs12/multi-server ./server
+  - docker build -t arvindcs12/multi-worker ./worker
+  #login to docker hub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #push the images to docker hub
+  - docker push arvindcs12/multi-client
+  - docker push arvindcs12/multi-nginx
+  - docker push arvindcs12/multi-server
+  - docker push arvindcs12/multi-worker
